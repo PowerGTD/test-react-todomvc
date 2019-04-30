@@ -1,99 +1,64 @@
 import React from "react";
 
-//create your first component
 export class Home extends React.Component {
 	constructor() {
 		super();
 		this.state = {
 			contacts: [],
 			input: "",
-			userName: ""
+			counter: 0
 		};
 	}
 
 	addListItems = e => {
 		let key = e.which || e.keyCode || 0;
-		if (key !== 13) {
-			return;
-		} else {
+		if (key === 13) {
+			let newInput = e.target.value.trim();
+			if (newInput === "") {
+				return;
+			}
+			this.setState({ input: newInput });
+			let newObject = { label: newInput, done: false };
 			let newContacts = this.state.contacts;
-			let newObject = { label: this.state.input, done: false };
 			newContacts.push(newObject);
-			fetch(
-				"https://assets.breatheco.de/apis/fake/todos/user/" +
-					this.state.userName,
-				{
-					method: "PUT",
-					body: JSON.stringify(newContacts),
-					headers: {
-						"Content-Type": "application/json"
-					}
-				}
-			)
-				.then(newRes => newRes.text())
-				.then(response => {
-					console.log(response);
-					this.setState({
-						contacts: newContacts,
-						input: ""
-					});
-				})
-				.catch(error => console.error("Error:", error));
+			let newCount = this.state.counter + 1;
+			this.setState({
+				contacts: newContacts,
+				counter: newCount
+			});
+			e.target.value = "";
 		}
 	};
 
 	deleteListItems = index => {
 		let updatedContacts = this.state.contacts;
-		updatedContacts[index].done = true;
-		fetch(
-			"https://assets.breatheco.de/apis/fake/todos/user/" +
-				this.state.userName,
-			{
-				method: "PUT",
-				body: JSON.stringify(updatedContacts),
-				headers: {
-					"Content-Type": "application/json"
-				}
-			}
-		)
-			.then(newRes => newRes.text())
-			.then(response => {
-				console.log(response);
-				this.setState({
-					contacts: updatedContacts
-				});
-			})
-			.catch(error => console.error("Error:", error));
+		let newCount = this.state.counter;
+		if (this.state.counter === 0 || updatedContacts[index].done) {
+			newCount = this.state.counter;
+		} else {
+			newCount = this.state.counter - 1;
+		}
+		updatedContacts.splice(index, 1);
+		this.setState({
+			contacts: updatedContacts,
+			counter: newCount
+		});
 	};
 
-	updateUserName = e => {
-		let key = e.which || e.keyCode || 0;
-		if (key !== 13) {
-			return;
+	checkOffItems = index => {
+		let finishedContacts = this.state.contacts;
+		if (finishedContacts[index].done) return;
+		finishedContacts[index].done = true;
+		let newCount = this.state.counter;
+		if (this.state.counter > 0) {
+			newCount = this.state.counter - 1;
 		} else {
-			fetch(
-				"https://assets.breatheco.de/apis/fake/todos/user/" +
-					this.state.userName
-			)
-				.then(newRes => newRes.json())
-				.then(nob => {
-					if (Array.isArray(nob) === true) {
-						this.setState({ contacts: nob });
-					} else {
-						fetch(
-							"https://assets.breatheco.de/apis/fake/todos/user/" +
-								this.state.userName,
-							{
-								method: "POST",
-								body: JSON.stringify([]),
-								headers: {
-									"Content-Type": "application/json"
-								}
-							}
-						).then(() => this.setState({ contacts: [] }));
-					}
-				});
+			newCount = this.state.counter;
 		}
+		this.setState({
+			contacts: finishedContacts,
+			counter: newCount
+		});
 	};
 
 	render() {
@@ -102,31 +67,13 @@ export class Home extends React.Component {
 				<div className="header">
 					<h1>todos</h1>
 				</div>
-				<div className="userNameChanger">
-					<div className="userNameLabel">
-						<h3>Username:</h3>
-					</div>
-					<div className="userNameInput">
-						<input
-							id="addUser"
-							type="text"
-							placeholder="What is your username?"
-							onKeyPress={this.updateUserName}
-							value={this.state.userName}
-							onChange={e =>
-								this.setState({ userName: e.target.value })
-							}
-						/>
-					</div>
-				</div>
 				<div className="container">
 					<input
+						autoFocus
 						id="addItem"
 						type="text"
 						placeholder="What needs to be done?"
 						onKeyPress={this.addListItems}
-						value={this.state.input}
-						onChange={e => this.setState({ input: e.target.value })}
 					/>
 					<ul>
 						{this.state.contacts.map((item, index) => {
@@ -138,18 +85,25 @@ export class Home extends React.Component {
 									<div className="deleter">
 										<span
 											onClick={() =>
+												this.checkOffItems(index)
+											}>
+											<i className="fas fa-check-square" />{" "}
+											&ensp;
+										</span>
+										<span
+											onClick={() =>
 												this.deleteListItems(index)
 											}>
-											x
+											<i className="fas fa-window-close" />
 										</span>
 									</div>
 								</li>
 							);
 						})}
 						<li id="counter">
-							{this.state.contacts.length === 1
-								? this.state.contacts.length + " total item"
-								: this.state.contacts.length + " total items"}
+							{this.state.counter === 1
+								? this.state.counter + " item left"
+								: this.state.counter + " items left"}
 						</li>
 					</ul>
 				</div>

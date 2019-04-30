@@ -13,22 +13,6 @@ body {
     color: #d1c7db;
 }
 
-.userNameChanger {
-  display: flex;
-  justify-content: center;
-  margin-bottom: 13px;
-}
-
-.userNameLabel {
-  margin-right: 7px;
-}
-
-.userNameLabel h3 {
-  font-size: 20px;
-  color: #d1c7db;
-  font-weight: 600;
-}
-
 .container {
   width: 520px;
   margin: 0 auto;
@@ -90,4 +74,5 @@ li:hover span {
   font-size: 11px;
   padding-left: 4px;
   color: #918f91;
+  text-align: left !important;
 }
